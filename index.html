@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
+  /* ── 다크 모드 (기본) ── */
   :root {
     --bg: #0a0e1a;
     --surface: #111827;
@@ -23,6 +24,34 @@
     --text-dim: #94a3b8;
     --glow: 0 0 20px rgba(0,212,255,0.3);
     --glow2: 0 0 20px rgba(124,58,237,0.3);
+    --header-bg: rgba(10,14,26,0.95);
+    --grid-line: rgba(0,212,255,0.04);
+    --mark-bg: rgba(0,212,255,0.25);
+    --mark-color: #00d4ff;
+    --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  /* ── 라이트 모드 ── */
+  [data-theme="light"] {
+    --bg: #f1f5f9;
+    --surface: #ffffff;
+    --surface2: #e8f0f8;
+    --border: #cbd5e1;
+    --accent: #0284c7;
+    --accent2: #7c3aed;
+    --accent3: #059669;
+    --warn: #d97706;
+    --danger: #dc2626;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-dim: #334155;
+    --glow: 0 0 16px rgba(2,132,199,0.2);
+    --glow2: 0 0 16px rgba(124,58,237,0.2);
+    --header-bg: rgba(248,250,252,0.97);
+    --grid-line: rgba(2,132,199,0.06);
+    --mark-bg: rgba(2,132,199,0.15);
+    --mark-color: #0284c7;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,8 +70,8 @@
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
@@ -53,7 +82,7 @@
     z-index: 10;
     padding: 28px 40px 20px;
     border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(10,14,26,0.95) 0%, transparent 100%);
+    background: linear-gradient(180deg, var(--header-bg) 0%, transparent 100%);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -248,7 +277,7 @@
     color: var(--accent);
   }
   .stat-chip.active {
-    background: rgba(0,212,255,0.12);
+    background: rgba(var(--accent-rgb, 0,212,255), 0.12);
     border-color: var(--accent);
     color: var(--accent);
     font-weight: 700;
@@ -372,8 +401,8 @@
 
   /* Highlight */
   mark {
-    background: rgba(0,212,255,0.25);
-    color: var(--accent);
+    background: var(--mark-bg);
+    color: var(--mark-color);
     border-radius: 2px;
     padding: 0 1px;
   }
@@ -696,6 +725,77 @@
     color: var(--text);
     border: 1px solid var(--border);
   }
+
+  /* 라이트 모드 오버라이드 */
+  [data-theme="light"] .btn {
+    background: var(--surface);
+    color: var(--text-dim);
+  }
+  [data-theme="light"] .btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  [data-theme="light"] .btn.primary {
+    background: linear-gradient(135deg, var(--accent), #0369a1);
+    color: #fff;
+    border: none;
+  }
+  [data-theme="light"] .tab.active {
+    background: linear-gradient(135deg, rgba(2,132,199,0.12), rgba(124,58,237,0.08));
+    color: var(--accent);
+    border: 1px solid rgba(2,132,199,0.3);
+  }
+  [data-theme="light"] .search-panel,
+  [data-theme="light"] .add-panel,
+  [data-theme="light"] .table-wrap,
+  [data-theme="light"] .preview-box {
+    box-shadow: var(--shadow);
+  }
+  [data-theme="light"] thead th {
+    background: var(--surface2);
+    color: var(--text-muted);
+  }
+  [data-theme="light"] tbody tr:hover {
+    background: rgba(2,132,199,0.05);
+  }
+  [data-theme="light"] .badge-room {
+    filter: brightness(0.9);
+  }
+  [data-theme="light"] .location-code {
+    color: var(--warn);
+  }
+  [data-theme="light"] mark {
+    background: var(--mark-bg);
+    color: var(--mark-color);
+  }
+  [data-theme="light"] .stat-chip.active {
+    background: rgba(2,132,199,0.12);
+  }
+  [data-theme="light"] .modal {
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  }
+  [data-theme="light"] .upload-section {
+    background: var(--surface2);
+  }
+  [data-theme="light"] .upload-section:hover,
+  [data-theme="light"] .upload-section.dragover {
+    background: rgba(2,132,199,0.06);
+  }
+  [data-theme="light"] .btn-excel.green {
+    background: rgba(5,150,105,0.08);
+    border-color: rgba(5,150,105,0.4);
+    color: #059669;
+  }
+  [data-theme="light"] .btn-excel.blue {
+    background: rgba(2,132,199,0.08);
+    border-color: rgba(2,132,199,0.35);
+    color: #0284c7;
+  }
+  [data-theme="light"] #loadingBar {
+    background: rgba(2,132,199,0.1) !important;
+    border-bottom-color: var(--accent) !important;
+  }
+
 </style>
 </head>
 <body>
@@ -707,6 +807,7 @@
     <p>SCIENCE LAB INVENTORY MANAGEMENT SYSTEM</p>
   </div>
   <div class="header-right">
+    <button class="btn" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환">🌙</button>
     <button class="btn" onclick="exportData()">📥 내보내기</button>
     <button class="btn primary" onclick="switchTab('add')">+ 물품 추가</button>
   </div>
@@ -717,7 +818,78 @@
   <div style="width:18px;height:18px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;"></div>
   <span style="font-size:13px;color:var(--accent);font-family:'Space Mono',monospace;"></span>
 </div>
-<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<style>@keyframes spin{to{transform:rotate(360deg)}}
+  /* 라이트 모드 오버라이드 */
+  [data-theme="light"] .btn {
+    background: var(--surface);
+    color: var(--text-dim);
+  }
+  [data-theme="light"] .btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  [data-theme="light"] .btn.primary {
+    background: linear-gradient(135deg, var(--accent), #0369a1);
+    color: #fff;
+    border: none;
+  }
+  [data-theme="light"] .tab.active {
+    background: linear-gradient(135deg, rgba(2,132,199,0.12), rgba(124,58,237,0.08));
+    color: var(--accent);
+    border: 1px solid rgba(2,132,199,0.3);
+  }
+  [data-theme="light"] .search-panel,
+  [data-theme="light"] .add-panel,
+  [data-theme="light"] .table-wrap,
+  [data-theme="light"] .preview-box {
+    box-shadow: var(--shadow);
+  }
+  [data-theme="light"] thead th {
+    background: var(--surface2);
+    color: var(--text-muted);
+  }
+  [data-theme="light"] tbody tr:hover {
+    background: rgba(2,132,199,0.05);
+  }
+  [data-theme="light"] .badge-room {
+    filter: brightness(0.9);
+  }
+  [data-theme="light"] .location-code {
+    color: var(--warn);
+  }
+  [data-theme="light"] mark {
+    background: var(--mark-bg);
+    color: var(--mark-color);
+  }
+  [data-theme="light"] .stat-chip.active {
+    background: rgba(2,132,199,0.12);
+  }
+  [data-theme="light"] .modal {
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  }
+  [data-theme="light"] .upload-section {
+    background: var(--surface2);
+  }
+  [data-theme="light"] .upload-section:hover,
+  [data-theme="light"] .upload-section.dragover {
+    background: rgba(2,132,199,0.06);
+  }
+  [data-theme="light"] .btn-excel.green {
+    background: rgba(5,150,105,0.08);
+    border-color: rgba(5,150,105,0.4);
+    color: #059669;
+  }
+  [data-theme="light"] .btn-excel.blue {
+    background: rgba(2,132,199,0.08);
+    border-color: rgba(2,132,199,0.35);
+    color: #0284c7;
+  }
+  [data-theme="light"] #loadingBar {
+    background: rgba(2,132,199,0.1) !important;
+    border-bottom-color: var(--accent) !important;
+  }
+
+</style>
 
 <div class="main">
   <!-- Tabs -->
@@ -1706,6 +1878,28 @@ function cancelPreview() {
   document.getElementById('previewArea').style.display = 'none';
   pendingImportData = [];
 }
+
+
+// ── Theme Toggle ──────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const next = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next === 'dark' ? '' : 'light');
+  document.getElementById('themeBtn').textContent = next === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('scienceTheme', next);
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem('scienceTheme') || 'dark';
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    // 버튼은 DOM 로드 후 설정
+    window.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('themeBtn');
+      if (btn) btn.textContent = '☀️';
+    });
+  }
+})();
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadItems();

@@ -1473,20 +1473,21 @@ function clearForm() {
 
 // ── Delete ────────────────────────────────────────────────────────────────────
 async function deleteItem(id) {
-  const item = items.find(i => i.id === id);
+  const sid = String(id);
+  const item = items.find(i => String(i.id) === sid);
   if (!item) return;
   if (!confirm(`"${item.제목}" 을(를) 삭제하시겠습니까?`)) return;
 
   if (API_URL.includes('여기에')) {
-    items = items.filter(i => i.id !== id);
+    items = items.filter(i => String(i.id) !== sid);
     localStorage.setItem('scienceItems', JSON.stringify(items));
     showToast('삭제되었습니다'); render(); return;
   }
 
   setLoading(true, '삭제 중...');
   try {
-    await apiPost({ action: 'delete', id: String(id) });
-    items = items.filter(i => i.id !== id);
+    await apiPost({ action: 'delete', id: sid });
+    items = items.filter(i => String(i.id) !== sid);
     showToast('삭제되었습니다');
     render();
   } catch (e) {
@@ -1498,9 +1499,10 @@ async function deleteItem(id) {
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 function openModal(id) {
-  const item = items.find(i=>i.id===id);
+  const sid = String(id);
+  const item = items.find(i => String(i.id) === sid);
   if (!item) return;
-  modalItemId = id;
+  modalItemId = item.id;
   document.getElementById('modalTitle').textContent = item.제목;
   document.getElementById('modalSub').textContent = `${item.실} · ${item.위치||'위치 미지정'}`;
   const fields = [
@@ -1522,16 +1524,17 @@ function deleteFromModal() { closeModalDirect(); deleteItem(modalItemId); }
 // ── Edit ──────────────────────────────────────────────────────────────────────
 let editId = null;
 function openEdit(id) {
-  const item = items.find(i=>i.id===id);
+  const sid = String(id);
+  const item = items.find(i => String(i.id) === sid);
   if (!item) return;
-  editId = id;
+  editId = item.id;
   const fields = [
     {id:'e_name', label:'물품명 *', type:'text', val:item.제목},
     {id:'e_spec', label:'규격', type:'text', val:item.규격},
     {id:'e_qty', label:'수량', type:'text', val:item.개수},
     {id:'e_room', label:'보관실', type:'select', val:item.실, opts:['물리실','화학실','생명과학실','지구과학실','준비실','리소스실','시약장']},
     {id:'e_loc', label:'세부 위치', type:'text', val:item.위치},
-    {id:'e_type', label:'구분', type:'select', val:item.구분, opts:['','교구','소모품','키트','시약']},
+    {id:'e_type', label:'구분', type:'select', val:item.구분, opts:['','교구','소모품','키트','시약','기타']},
     {id:'e_use', label:'용도', type:'text', val:item.용도},
     {id:'e_apply', label:'활용', type:'text', val:item.활용},
     {id:'e_note', label:'기타 메모', type:'text', val:item.기타},

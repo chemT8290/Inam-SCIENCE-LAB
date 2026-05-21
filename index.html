@@ -807,7 +807,7 @@
     <p>SCIENCE LAB INVENTORY MANAGEMENT SYSTEM</p>
   </div>
   <div class="header-right">
-    <button class="btn" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환">🌙</button>
+    <button class="btn" id="themeBtn" onclick="toggleTheme()" title="다크/라이트 모드 전환">☀️</button>
     <button class="btn" onclick="exportData()">📥 내보내기</button>
     <button class="btn primary" onclick="switchTab('add')">+ 물품 추가</button>
   </div>
@@ -1895,23 +1895,21 @@ function cancelPreview() {
 
 // ── Theme Toggle ──────────────────────────────────────────────────────────────
 function toggleTheme() {
-  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-  const next = isDark ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next === 'dark' ? '' : 'light');
-  document.getElementById('themeBtn').textContent = next === 'dark' ? '🌙' : '☀️';
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const next = isLight ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themeBtn').textContent = next === 'light' ? '☀️' : '🌙';
   localStorage.setItem('scienceTheme', next);
 }
 
 (function initTheme() {
+  // 저장된 값이 없으면 라이트 기본
   const saved = localStorage.getItem('scienceTheme') || 'light';
-  if (saved === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    // 버튼은 DOM 로드 후 설정
-    window.addEventListener('DOMContentLoaded', () => {
-      const btn = document.getElementById('themeBtn');
-      if (btn) btn.textContent = '☀️';
-    });
-  }
+  document.documentElement.setAttribute('data-theme', saved);
+  window.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = saved === 'light' ? '☀️' : '🌙';
+  });
 })();
 
 // ── Init ──────────────────────────────────────────────────────────────────────

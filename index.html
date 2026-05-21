@@ -712,6 +712,13 @@
   </div>
 </header>
 
+<!-- Loading Bar -->
+<div id="loadingBar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(0,212,255,0.12);border-bottom:2px solid var(--accent);padding:10px 24px;align-items:center;gap:12px;backdrop-filter:blur(4px);">
+  <div style="width:18px;height:18px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;"></div>
+  <span style="font-size:13px;color:var(--accent);font-family:'Space Mono',monospace;"></span>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
 <div class="main">
   <!-- Tabs -->
   <div class="tabs">
@@ -1045,15 +1052,61 @@ const INITIAL_DATA = [
   {제목:"구리가루",개수:"1",용도:"",활용:"",단원:"Cu",교과:"",기타:"",구분:"시약",위치:"고체시약 왼쪽 상단",실:"시약장",현재사용자:""},
 ];
 
+// ── ★ Google Apps Script URL 설정 ★ ──────────────────────────────────────────
+// Apps Script 배포 후 받은 URL을 아래에 붙여넣으세요
+const API_URL = 'https://script.google.com/macros/s/AKfycbx6_MidvOeif8fHkKDP1RfkwIO-_io6Y3WbH0ICjEWdd7BK9j4GHGmQRPS5_fzeuIpA/exec';
+
 // ── State ────────────────────────────────────────────────────────────────────
-let items = JSON.parse(localStorage.getItem('scienceItems') || 'null') || INITIAL_DATA.map((d,i) => ({...d, id: i+1}));
-let nextId = items.length ? Math.max(...items.map(i=>i.id)) + 1 : 1;
+let items = [];
 let sortKey = '', sortDir = 1;
 let currentPage = 1;
 const PAGE_SIZE = 20;
 let modalItemId = null;
+let isLoading = false;
 
-function save() { localStorage.setItem('scienceItems', JSON.stringify(items)); }
+// ── API 통신 ──────────────────────────────────────────────────────────────────
+async function apiGet() {
+  const res = await fetch(API_URL);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error);
+  return data.items;
+}
+
+async function apiPost(body) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error);
+  return data;
+}
+
+function setLoading(on, msg = '처리 중...') {
+  isLoading = on;
+  const el = document.getElementById('loadingBar');
+  if (el) { el.style.display = on ? 'flex' : 'none'; el.querySelector('span').textContent = msg; }
+}
+
+async function loadItems() {
+  if (API_URL.includes('여기에')) {
+    // API 미설정 시 초기 데이터로 로컬 동작
+    items = (JSON.parse(localStorage.getItem('scienceItems') || 'null') || INITIAL_DATA)
+      .map((d, i) => ({ ...d, id: d.id || String(i + 1) }));
+    render();
+    showToast('⚠️ API URL이 설정되지 않아 로컬 모드로 동작합니다', true);
+    return;
+  }
+  setLoading(true, '데이터를 불러오는 중...');
+  try {
+    items = await apiGet();
+    render();
+  } catch (e) {
+    showToast('데이터 로딩 실패: ' + e.message, true);
+  } finally {
+    setLoading(false);
+  }
+}
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
 function switchTab(t) {
@@ -1191,14 +1244,13 @@ function render() {
 function goPage(p) { currentPage = p; render(); window.scrollTo(0,0); }
 
 // ── Add Item ─────────────────────────────────────────────────────────────────
-function addItem() {
+async function addItem() {
   const name = document.getElementById('f_name').value.trim();
   if (!name) { showToast('물품명을 입력해주세요', true); return; }
   const room = document.getElementById('f_room').value;
   if (!room) { showToast('보관실을 선택해주세요', true); return; }
 
-  const item = {
-    id: nextId++,
+  const newItem = {
     제목: name,
     개수: document.getElementById('f_qty').value.trim(),
     실: room.startsWith('시약장') ? '시약장' : room,
@@ -1209,11 +1261,27 @@ function addItem() {
     기타: document.getElementById('f_note').value.trim(),
   };
 
-  items.push(item);
-  save();
-  clearForm();
-  showToast(`"${name}" 추가 완료!`);
-  switchTab('search');
+  if (API_URL.includes('여기에')) {
+    newItem.id = String(Date.now());
+    items.push(newItem);
+    localStorage.setItem('scienceItems', JSON.stringify(items));
+    clearForm(); showToast(`"${name}" 추가 완료!`); switchTab('search');
+    return;
+  }
+
+  setLoading(true, '추가 중...');
+  try {
+    const res = await apiPost({ action: 'add', ...newItem });
+    newItem.id = res.id;
+    items.push(newItem);
+    clearForm();
+    showToast(`"${name}" 추가 완료!`);
+    switchTab('search');
+  } catch (e) {
+    showToast('추가 실패: ' + e.message, true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 function clearForm() {
@@ -1224,14 +1292,28 @@ function clearForm() {
 }
 
 // ── Delete ────────────────────────────────────────────────────────────────────
-function deleteItem(id) {
-  const item = items.find(i=>i.id===id);
+async function deleteItem(id) {
+  const item = items.find(i => i.id === id);
   if (!item) return;
   if (!confirm(`"${item.제목}" 을(를) 삭제하시겠습니까?`)) return;
-  items = items.filter(i=>i.id!==id);
-  save();
-  showToast('삭제되었습니다');
-  render();
+
+  if (API_URL.includes('여기에')) {
+    items = items.filter(i => i.id !== id);
+    localStorage.setItem('scienceItems', JSON.stringify(items));
+    showToast('삭제되었습니다'); render(); return;
+  }
+
+  setLoading(true, '삭제 중...');
+  try {
+    await apiPost({ action: 'delete', id: String(id) });
+    items = items.filter(i => i.id !== id);
+    showToast('삭제되었습니다');
+    render();
+  } catch (e) {
+    showToast('삭제 실패: ' + e.message, true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
@@ -1282,23 +1364,42 @@ function openEdit(id) {
   document.getElementById('editOverlay').classList.add('show');
 }
 
-function saveEdit() {
-  const item = items.find(i=>i.id===editId);
+async function saveEdit() {
+  const item = items.find(i => i.id === editId);
   if (!item) return;
   const name = document.getElementById('e_name').value.trim();
   if (!name) { showToast('물품명을 입력해주세요', true); return; }
-  item.제목 = name;
-  item.개수 = document.getElementById('e_qty').value.trim();
-  item.실 = document.getElementById('e_room').value;
-  item.위치 = document.getElementById('e_loc').value.trim();
-  item.구분 = document.getElementById('e_type').value;
-  item.용도 = document.getElementById('e_use').value.trim();
-  item.활용 = document.getElementById('e_apply').value.trim();
-  item.기타 = document.getElementById('e_note').value.trim();
-  save();
-  closeEditDirect();
-  showToast('수정되었습니다');
-  render();
+
+  const updated = {
+    id: String(item.id),
+    제목: name,
+    개수: document.getElementById('e_qty').value.trim(),
+    실: document.getElementById('e_room').value,
+    위치: document.getElementById('e_loc').value.trim(),
+    구분: document.getElementById('e_type').value,
+    용도: document.getElementById('e_use').value.trim(),
+    활용: document.getElementById('e_apply').value.trim(),
+    기타: document.getElementById('e_note').value.trim(),
+  };
+
+  if (API_URL.includes('여기에')) {
+    Object.assign(item, updated);
+    localStorage.setItem('scienceItems', JSON.stringify(items));
+    closeEditDirect(); showToast('수정되었습니다'); render(); return;
+  }
+
+  setLoading(true, '수정 중...');
+  try {
+    await apiPost({ action: 'update', ...updated });
+    Object.assign(item, updated);
+    closeEditDirect();
+    showToast('수정되었습니다');
+    render();
+  } catch (e) {
+    showToast('수정 실패: ' + e.message, true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 function closeEdit(e) { if (e.target===document.getElementById('editOverlay')) closeEditDirect(); }
@@ -1556,21 +1657,49 @@ function setImportMode(mode) {
     : `기존 목록이 삭제되고 업로드한 ${pendingImportData.length}개로 교체됩니다`;
 }
 
-function confirmImport() {
+async function confirmImport() {
   if (!pendingImportData.length) return;
   if (importMode === 'replace') {
     if (!confirm(`기존 물품 ${items.length}개가 모두 삭제되고 새 데이터로 교체됩니다.\n계속하시겠습니까?`)) return;
-    items = [];
-    nextId = 1;
   }
-  pendingImportData.forEach(d => {
-    items.push({...d, id: nextId++});
-  });
-  save();
-  cancelPreview();
-  showToast(`${pendingImportData.length}개 물품이 등록되었습니다 ✅`);
-  pendingImportData = [];
-  switchTab('search');
+
+  if (API_URL.includes('여기에')) {
+    if (importMode === 'replace') items = [];
+    pendingImportData.forEach(d => items.push({ ...d, id: String(Date.now() + Math.random()) }));
+    localStorage.setItem('scienceItems', JSON.stringify(items));
+    cancelPreview();
+    showToast(`${pendingImportData.length}개 물품이 등록되었습니다 ✅`);
+    pendingImportData = [];
+    switchTab('search');
+    return;
+  }
+
+  const total = pendingImportData.length;
+  setLoading(true, `0 / ${total}개 등록 중...`);
+  try {
+    // 교체 모드: 기존 항목 전체 삭제
+    if (importMode === 'replace') {
+      for (let i = 0; i < items.length; i++) {
+        await apiPost({ action: 'delete', id: String(items[i].id) });
+      }
+      items = [];
+    }
+    // 새 항목 순차 추가
+    for (let i = 0; i < pendingImportData.length; i++) {
+      const d = pendingImportData[i];
+      setLoading(true, `${i + 1} / ${total}개 등록 중...`);
+      const res = await apiPost({ action: 'add', ...d });
+      items.push({ ...d, id: res.id });
+    }
+    cancelPreview();
+    showToast(`${total}개 물품이 등록되었습니다 ✅`);
+    pendingImportData = [];
+    switchTab('search');
+  } catch (e) {
+    showToast('업로드 실패: ' + e.message, true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 function cancelPreview() {
@@ -1579,7 +1708,7 @@ function cancelPreview() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-render();
+loadItems();
 </script>
 </body>
 </html>

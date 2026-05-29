@@ -1488,16 +1488,37 @@ async function openEdit(id) {
     {id:'e_name', label:'물품명 *', type:'text', val:item.제목},
     {id:'e_spec', label:'규격', type:'text', val:item.규격},
     {id:'e_qty', label:'수량', type:'text', val:item.개수},
-    {id:'e_room', label:'보관실', type:'select', val:item.실, opts:['물리실','화학실','생명과학실','지구과학실','준비실','리소스실','시약장1','시약장2','시약장3']},
+    {id:'e_room', label:'보관실', type:'select', val:item.실, opts:[
+      {v:'물리실',     l:'🔵 물리실'},
+      {v:'화학실',     l:'🟢 화학실'},
+      {v:'생명과학실', l:'🟡 생명과학실'},
+      {v:'지구과학실', l:'🔴 지구과학실'},
+      {v:'준비실',     l:'⚪ 준비실'},
+      {v:'리소스실',   l:'🟣 리소스실'},
+      {v:'시약장1',    l:'🔵 시약장1 (파랑)'},
+      {v:'시약장2',    l:'⚪ 시약장2 (하양)'},
+      {v:'시약장3',    l:'🟡 시약장3 (노랑)'},
+    ]},
     {id:'e_loc', label:'세부 위치', type:'text', val:item.위치},
-    {id:'e_type', label:'구분', type:'select', val:item.구분, opts:['','교구','소모품','키트','시약','기타']},
+    {id:'e_type', label:'구분', type:'select', val:item.구분, opts:[
+      {v:'',     l:'없음'},
+      {v:'교구',   l:'교구'},
+      {v:'소모품', l:'소모품'},
+      {v:'키트',   l:'키트'},
+      {v:'시약',   l:'시약'},
+      {v:'기타',   l:'기타'},
+    ]},
     {id:'e_use', label:'용도', type:'text', val:item.용도},
     {id:'e_apply', label:'활용', type:'text', val:item.활용},
     {id:'e_note', label:'기타 메모', type:'text', val:item.기타},
   ];
   document.getElementById('editForm').innerHTML = fields.map(f => {
     const ctrl = f.type === 'select'
-      ? `<select class="form-control" id="${f.id}">${f.opts.map(o=>`<option value="${o}"${o===f.val?' selected':''}>${o||'없음'}</option>`).join('')}</select>`
+      ? `<select class="form-control" id="${f.id}">${f.opts.map(o => {
+          const val = typeof o === 'object' ? o.v : o;
+          const lbl = typeof o === 'object' ? o.l : (o || '없음');
+          return `<option value="${val}"${val === f.val ? ' selected' : ''}>${lbl}</option>`;
+        }).join('')}</select>`
       : `<input type="text" class="form-control" id="${f.id}" value="${(f.val||'').replace(/"/g,'&quot;')}">`;
     return `<div class="form-group half"><label>${f.label}</label>${ctrl}</div>`;
   }).join('');

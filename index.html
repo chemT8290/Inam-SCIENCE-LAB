@@ -925,9 +925,9 @@
           <option value="준비실">⚪ 준비실</option>
           <option value="리소스실">🟣 리소스실</option>
           <option value="시약장">🧪 시약장 (전체)</option>
-          <option value="시약장1">🔵 시약장1 (파랑)</option>
-          <option value="시약장2">⚪ 시약장2 (하양)</option>
-          <option value="시약장3">🟡 시약장3 (노랑)</option>
+          <option value="시약장1(파랑)">🔵 시약장1 (파랑)</option>
+          <option value="시약장2(하양)">⚪ 시약장2 (하양)</option>
+          <option value="시약장3(노랑)">🟡 시약장3 (노랑)</option>
         </select>
         <select class="filter-select" id="filterType" onchange="doSearch()">
           <option value="">🏷️ 전체 구분</option>
@@ -1087,9 +1087,9 @@
             <option value="지구과학실">🔴 지구과학실</option>
             <option value="준비실">⚪ 준비실</option>
             <option value="리소스실">🟣 리소스실</option>
-            <option value="시약장1">🔵 시약장1 (파랑)</option>
-            <option value="시약장2">⚪ 시약장2 (하양)</option>
-            <option value="시약장3">🟡 시약장3 (노랑)</option>
+            <option value="시약장1(파랑)">🔵 시약장1 (파랑)</option>
+            <option value="시약장2(하양)">⚪ 시약장2 (하양)</option>
+            <option value="시약장3(노랑)">🟡 시약장3 (노랑)</option>
           </select>
         </div>
         <div class="form-group half">
@@ -1254,15 +1254,10 @@ function filterItems() {
     if (room) {
       const itemRoom = item.실 || '';
       if (room === '시약장') {
-        // 전체 시약장 보기: 시약장, 시약장1/2/3 모두 포함
+        // 전체 시약장: 시약장으로 시작하는 모든 항목
         if (!itemRoom.startsWith('시약장')) return false;
-      } else if (room.startsWith('시약장')) {
-        // 시약장1/2/3 선택: 해당 번호 또는 구버전 '시약장' 데이터도 포함
-        if (itemRoom !== room && itemRoom !== '시약장') return false;
-        // 단, 시약장1만 선택 시 시약장2/3은 제외 (정확히 일치하거나 미분류 시약장만)
-        if (itemRoom === '시약장') { /* 미분류 시약장은 어느 시약장 필터에도 표시 */ }
-        else if (itemRoom !== room) return false;
       } else {
+        // 정확히 일치
         if (itemRoom !== room) return false;
       }
     }
@@ -1298,7 +1293,7 @@ function highlight(text, kw) {
 }
 
 function getRoomColor(room) {
-  const map = {물리실:'#00d4ff', 화학실:'#10b981', 생명과학실:'#f59e0b', 지구과학실:'#ef4444', 준비실:'#a78bfa', 리소스실:'#f472b6', 시약장1:'#3b82f6', 시약장2:'#e5e7eb', 시약장3:'#eab308', 시약장:'#fb923c'};
+  const map = {물리실:'#00d4ff', 화학실:'#10b981', 생명과학실:'#f59e0b', 지구과학실:'#ef4444', 준비실:'#a78bfa', 리소스실:'#f472b6', '시약장1(파랑)':'#3b82f6', '시약장2(하양)':'#e5e7eb', '시약장3(노랑)':'#eab308', 시약장:'#fb923c'};
   return map[room] || '#64748b';
 }
 
@@ -1345,7 +1340,7 @@ function render() {
         <td class="td-name">${highlight(item.제목, kw)}</td>
         <td>${highlight(item.규격, kw)||'-'}</td>
         <td>${item.개수||'-'}</td>
-        <td><span class="badge badge-room" style="background:${roomColor}22;color:${item.실==='시약장2'?'#374151':roomColor};border-color:${roomColor}44">${item.실||'-'}</span></td>
+        <td><span class="badge badge-room" style="background:${roomColor}22;color:${item.실==='시약장2(하양)'?'#374151':roomColor};border-color:${roomColor}44">${item.실||'-'}</span></td>
         <td><span class="location-code">${highlight(item.위치, kw)}</span></td>
         <td>${item.구분 ? `<span class="badge ${isReagent?'badge-reagent':'badge-type'}">${item.구분}</span>` : '-'}</td>
         <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${highlight(item.용도||item.활용||'', kw) || '-'}</td>
@@ -1506,9 +1501,9 @@ async function openEdit(id) {
       {v:'지구과학실', l:'🔴 지구과학실'},
       {v:'준비실',     l:'⚪ 준비실'},
       {v:'리소스실',   l:'🟣 리소스실'},
-      {v:'시약장1',    l:'🔵 시약장1 (파랑)'},
-      {v:'시약장2',    l:'⚪ 시약장2 (하양)'},
-      {v:'시약장3',    l:'🟡 시약장3 (노랑)'},
+      {v:'시약장1(파랑)', l:'🔵 시약장1 (파랑)'},
+      {v:'시약장2(하양)', l:'⚪ 시약장2 (하양)'},
+      {v:'시약장3(노랑)', l:'🟡 시약장3 (노랑)'},
     ]},
     {id:'e_loc', label:'세부 위치', type:'text', val:item.위치},
     {id:'e_type', label:'구분', type:'select', val:item.구분, opts:[

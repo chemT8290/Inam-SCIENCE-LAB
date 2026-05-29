@@ -924,6 +924,7 @@
           <option value="지구과학실">🔴 지구과학실</option>
           <option value="준비실">⚪ 준비실</option>
           <option value="리소스실">🟣 리소스실</option>
+          <option value="시약장">🧪 시약장 (전체)</option>
           <option value="시약장1">🔵 시약장1 (파랑)</option>
           <option value="시약장2">⚪ 시약장2 (하양)</option>
           <option value="시약장3">🟡 시약장3 (노랑)</option>
@@ -1080,15 +1081,15 @@
           <label>보관실 <span class="req">*</span></label>
           <select class="form-control" id="f_room">
             <option value="">선택하세요</option>
-            <option value="물리실">물리실</option>
-            <option value="화학실">화학실</option>
-            <option value="생명과학실">생명과학실</option>
-            <option value="지구과학실">지구과학실</option>
-            <option value="준비실">준비실</option>
-            <option value="리소스실">리소스실</option>
-            <option value="시약장1">시약장1</option>
-            <option value="시약장2">시약장2</option>
-            <option value="시약장3">시약장3</option>
+            <option value="물리실">🔵 물리실</option>
+            <option value="화학실">🟢 화학실</option>
+            <option value="생명과학실">🟡 생명과학실</option>
+            <option value="지구과학실">🔴 지구과학실</option>
+            <option value="준비실">⚪ 준비실</option>
+            <option value="리소스실">🟣 리소스실</option>
+            <option value="시약장1">🔵 시약장1 (파랑)</option>
+            <option value="시약장2">⚪ 시약장2 (하양)</option>
+            <option value="시약장3">🟡 시약장3 (노랑)</option>
           </select>
         </div>
         <div class="form-group half">
@@ -1251,9 +1252,19 @@ function filterItems() {
   return items.filter(item => {
     if (!matches(item, kw)) return false;
     if (room) {
-      // '시약장' 선택 시 시약장1/2/3 전체 포함
-      if (room === '시약장') { if (!(item.실||'').startsWith('시약장')) return false; }
-      else if (item.실 !== room) return false;
+      const itemRoom = item.실 || '';
+      if (room === '시약장') {
+        // 전체 시약장 보기: 시약장, 시약장1/2/3 모두 포함
+        if (!itemRoom.startsWith('시약장')) return false;
+      } else if (room.startsWith('시약장')) {
+        // 시약장1/2/3 선택: 해당 번호 또는 구버전 '시약장' 데이터도 포함
+        if (itemRoom !== room && itemRoom !== '시약장') return false;
+        // 단, 시약장1만 선택 시 시약장2/3은 제외 (정확히 일치하거나 미분류 시약장만)
+        if (itemRoom === '시약장') { /* 미분류 시약장은 어느 시약장 필터에도 표시 */ }
+        else if (itemRoom !== room) return false;
+      } else {
+        if (itemRoom !== room) return false;
+      }
     }
     if (type && item.구분 !== type) return false;
     return true;
